@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { Menu, X, LayoutDashboard, LineChart, Key, LogOut, User, ChevronDown, Sparkles, Home as HomeIcon, Edit, Instagram } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LineChart, Key, LogOut, User, ChevronDown, Home as HomeIcon, Edit, Instagram } from 'lucide-react';
 import ApiKeysModal from './ApiKeysModal';
 
 const Navigation = () => {
@@ -47,7 +47,6 @@ const Navigation = () => {
     { name: 'Início', href: '/home', icon: HomeIcon },
     { name: 'Instagram', href: '/instagram-analytics', icon: Instagram },
     { name: 'Canais', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Analisador IA', href: '/ai-analyzer', icon: Sparkles },
     { name: 'Criador de Conteúdo', href: '/content-creator', icon: Edit },
   ];
 
@@ -57,7 +56,7 @@ const Navigation = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/dashboard" className="flex items-center group">
+              <Link to="/home" className="flex items-center group">
                 <img
                   src="https://vqptszujydcaedjglhdo.supabase.co/storage/v1/object/public/storage//Logo.webp"
                   alt="Nexia Logo"

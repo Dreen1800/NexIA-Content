@@ -1,0 +1,79 @@
+/* Header do chat */
+.chat-header {
+    padding: 28px 40px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 10;
+    position: relative;
+    min-height: 100px;
+}
+
+.ai-avatar {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(196, 132, 252, 0.1));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.ai-avatar img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 14px;
+}
+
+.ai-info h2 {
+    color: #374151;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.ai-status {
+    color: #6b7280;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+}
+
+.status-dot.online {
+    background: #8b5cf6;
+}
+
+.status-dot.processing,
+.status-dot.recording {
+    background: #c084fc;
+}
+
+.status-dot.error {
+    background: #ef4444;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}

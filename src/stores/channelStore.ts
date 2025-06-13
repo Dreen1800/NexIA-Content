@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
 import { fetchChannelData } from '../services/youtubeService';
+import { useAuthStore } from './authStore';
 
 interface Channel {
   id: string;
@@ -87,9 +88,8 @@ export const useChannelStore = create<ChannelState>((set, get) => ({
   analyzeChannel: async (channelUrl, options) => {
     set({ isLoading: true, error: null });
     try {
-      // Get the current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      // Get the current user from the auth store instead of making a separate call
+      const user = useAuthStore.getState().user;
       if (!user) throw new Error('User not authenticated');
 
       // Call our backend service to analyze the channel
@@ -248,7 +248,7 @@ export const useChannelStore = create<ChannelState>((set, get) => ({
   setMainChannel: async (channelId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = useAuthStore.getState().user;
       if (!user) throw new Error('User not authenticated');
 
       await supabase

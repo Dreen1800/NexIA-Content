@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase /*, supabaseAdmin */ } from '../lib/supabaseClient'; // supabaseAdmin pode não ser necessário aqui se RLS estiver configurado e o usuário faz as próprias escritas
 import { scrapeInstagramProfile, checkScrapingStatus, fetchScrapingResults, fetchProfileData, saveProfileDataOnly, fetchPostsOnly, ScrapingParams } from '../services/instagramService';
+import { useAuthStore } from './authStore';
 
 // Definição dos novos tipos e interfaces
 export type ScrapingJobStatus =
@@ -27,6 +28,7 @@ export interface InstagramProfile {
     isBusinessAccount: boolean;
     businessCategoryName?: string;
     createdAt: string;
+    isMain: boolean;
 }
 
 export interface InstagramPost {
@@ -69,33 +71,46 @@ interface InstagramState {
     profiles: InstagramProfile[];
     currentProfile: InstagramProfile | null;
     posts: InstagramPost[];
+    allPostsForEngagement: InstagramPost[]; // Posts completos para cálculo de engajamento
     activeScrapingJobs: ScrapingJob[]; // Usará a nova interface
     isLoading: boolean; // Pode ser usado para carregamento inicial de jobs, ou status de botões
     error: string | null;
+    hasMorePosts: boolean; // Nova propriedade para controlar se há mais posts
+    currentPage: number; // Nova propriedade para controlar a página atual
     fetchProfiles: () => Promise<void>;
     scrapeProfile: (username: string, params?: ScrapingParams) => Promise<void>;
-    setCurrentProfile: (profile: InstagramProfile) => void;
-    fetchPosts: (profileId: string) => Promise<void>;
+    setCurrentProfile: (profile: InstagramProfile) => Promise<void>;
+    fetchPosts: (profileId: string, page?: number, limit?: number) => Promise<void>;
+    fetchAllPostsForEngagement: (profileId: string) => Promise<void>; // Nova função
+    loadMorePosts: (profileId: string) => Promise<void>; // Nova função para carregar mais posts
+    resetPosts: () => void; // Nova função para resetar os posts
     checkActiveScrapingJobs: () => Promise<void>; // Precisará ser refatorado
     processFinishedScrapingJob: (job: ScrapingJob) => Promise<void>; // Precisará ser refatorado
     deleteProfile: (profileId: string) => Promise<void>;
     fetchUserJobs: () => Promise<void>; // Nova função
     updateJobInSupabase: (jobId: string, updates: Partial<Omit<ScrapingJob, 'id' | 'user_id' | 'created_at' | 'profile_username'>>) => Promise<ScrapingJob | null>; // Nova helper
+    updateJob: (jobId: string) => Promise<void>; // Nova função para atualizar job
+    setMainProfile: (profileId: string) => Promise<void>;
+    getMainProfile: () => Promise<InstagramProfile | null>;
 }
 
 export const useInstagramStore = create<InstagramState>((set, get) => ({
     profiles: [],
     currentProfile: null,
     posts: [],
+    allPostsForEngagement: [],
     activeScrapingJobs: [],
     isLoading: false,
     error: null,
+    hasMorePosts: true,
+    currentPage: 0,
 
     // Nova função para buscar jobs do usuário no Supabase
     fetchUserJobs: async () => {
         set({ isLoading: true, error: null });
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Get the current user from the auth store instead of making a separate call
+            const user = useAuthStore.getState().user;
             if (!user) {
                 set({ activeScrapingJobs: [], isLoading: false });
                 return;
@@ -161,7 +176,8 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
             const { data, error } = await supabase
                 .from('instagram_profiles')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('is_main', { ascending: false }) // Perfil principal primeiro
+                .order('created_at', { ascending: false }); // Depois ordenar por data de criação
 
             if (error) throw error;
 
@@ -177,11 +193,13 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
                 profilePicUrl: profile.profile_pic_url || '',
                 isBusinessAccount: profile.is_business_account || false,
                 businessCategoryName: profile.business_category_name,
-                createdAt: profile.created_at
+                createdAt: profile.created_at,
+                isMain: profile.is_main || false
             })) || [];
 
             set({ profiles, isLoading: false });
         } catch (error: any) {
+            console.error('Erro ao carregar perfis:', error);
             set({ error: error.message, isLoading: false });
         }
     },
@@ -191,7 +209,8 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
         let supabaseJobIdAsString: string | undefined = undefined; // Declarada aqui para escopo mais amplo
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            // Get the current user from the auth store instead of making a separate call
+            const user = useAuthStore.getState().user;
             if (!user) {
                 throw new Error('Usuário não autenticado.');
             }
@@ -476,18 +495,23 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
         }
     },
 
-    setCurrentProfile: (profile) => {
+    setCurrentProfile: async (profile) => {
         set({ currentProfile: profile });
+        // Buscar todos os posts para cálculo preciso de engajamento
+        if (profile?.id) {
+            await get().fetchAllPostsForEngagement(profile.id);
+        }
     },
 
-    fetchPosts: async (profileId) => {
+    fetchPosts: async (profileId, page = 0, limit = 20) => {
         set({ isLoading: true, error: null });
         try {
             const { data, error } = await supabase
                 .from('instagram_posts')
                 .select('*')
                 .eq('profile_id', profileId)
-                .order('timestamp', { ascending: false });
+                .order('timestamp', { ascending: false })
+                .range(page * limit, (page + 1) * limit - 1);
 
             if (error) throw error;
 
@@ -511,10 +535,91 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
                 isCommentsDisabled: post.is_comments_disabled
             })) || [];
 
-            set({ posts, isLoading: false });
+            // Se é a primeira página, substitui os posts. Senão, adiciona aos existentes
+            if (page === 0) {
+                set({
+                    posts,
+                    isLoading: false,
+                    currentPage: 0,
+                    hasMorePosts: posts.length === limit
+                });
+            } else {
+                set(state => ({
+                    posts: [...state.posts, ...posts],
+                    isLoading: false,
+                    currentPage: page,
+                    hasMorePosts: posts.length === limit
+                }));
+            }
         } catch (error: any) {
             set({ error: error.message, isLoading: false });
         }
+    },
+
+    fetchAllPostsForEngagement: async (profileId) => {
+        console.log(`[fetchAllPostsForEngagement] Buscando todos os posts para perfil ${profileId}`);
+        set({ isLoading: true, error: null });
+        try {
+            const { data, error } = await supabase
+                .from('instagram_posts')
+                .select('*')
+                .eq('profile_id', profileId);
+
+            if (error) throw error;
+
+            console.log(`[fetchAllPostsForEngagement] Posts encontrados no banco: ${data?.length || 0}`);
+            if (data && data.length > 0) {
+                console.log(`[fetchAllPostsForEngagement] Primeiro post do banco:`, data[0]);
+            }
+
+            const allPosts = data?.map(post => ({
+                id: post.id,
+                profile_id: post.profile_id,
+                instagram_id: post.instagram_id,
+                shortCode: post.short_code,
+                type: post.type || 'Image',
+                url: post.url || '',
+                caption: post.caption || '',
+                timestamp: post.timestamp,
+                likesCount: post.likes_count,
+                commentsCount: post.comments_count,
+                videoViewCount: post.video_view_count,
+                displayUrl: post.display_url,
+                isVideo: post.is_video,
+                hashtags: post.hashtags ? JSON.parse(post.hashtags) : undefined,
+                mentions: post.mentions ? JSON.parse(post.mentions) : undefined,
+                productType: post.product_type,
+                isCommentsDisabled: post.is_comments_disabled
+            })) || [];
+
+            console.log(`[fetchAllPostsForEngagement] Posts mapeados: ${allPosts.length}`);
+            if (allPosts.length > 0) {
+                console.log(`[fetchAllPostsForEngagement] Primeiro post mapeado:`, allPosts[0]);
+            }
+
+            set({ allPostsForEngagement: allPosts, isLoading: false });
+        } catch (error: any) {
+            console.error('Erro ao carregar todos os posts para engajamento:', error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
+    loadMorePosts: async (profileId) => {
+        const { currentPage, hasMorePosts, isLoading } = get();
+
+        if (!hasMorePosts || isLoading) return;
+
+        const nextPage = currentPage + 1;
+        await get().fetchPosts(profileId, nextPage);
+    },
+
+    resetPosts: () => {
+        set({
+            posts: [],
+            allPostsForEngagement: [],
+            currentPage: 0,
+            hasMorePosts: true
+        });
     },
 
     // checkActiveScrapingJobs e processFinishedScrapingJob precisarão de refatoração pesada
@@ -837,7 +942,7 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
                                 .from('instagram_profiles')
                                 .select('*')
                                 .eq('username', currentJobState.profile_username)
-                                .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+                                .eq('user_id', useAuthStore.getState().user?.id)
                                 .single();
 
                             if (profileFromParent) {
@@ -857,7 +962,7 @@ export const useInstagramStore = create<InstagramState>((set, get) => ({
                         .from('instagram_profiles')
                         .select('*')
                         .eq('username', currentJobState.profile_username)
-                        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+                        .eq('user_id', useAuthStore.getState().user?.id)
                         .single();
 
                     if (existingProfile) {
@@ -1017,6 +1122,145 @@ Você pode encontrar esta chave no painel do Supabase:
                 error: `Falha ao excluir perfil: ${error.message || 'Erro desconhecido'}`,
                 isLoading: false
             });
+        }
+    },
+
+    updateJob: async (jobId) => {
+        try {
+            const job = get().activeScrapingJobs.find(j => j.id === jobId);
+            if (!job) {
+                throw new Error('Job não encontrado');
+            }
+
+            if (!job.apify_dataset_id) {
+                throw new Error('Job não possui dataset ID');
+            }
+
+            console.log(`=== ATUALIZANDO JOB ${jobId} ===`);
+            console.log('Job:', job);
+
+            // Atualizar status para PROCESSING_DATA
+            const processingUpdate = await get().updateJobInSupabase(jobId, {
+                status: 'PROCESSING_DATA' as ScrapingJobStatus,
+                error_message: 'Reprocessando dados completos...'
+            });
+
+            if (processingUpdate) {
+                set(state => ({
+                    activeScrapingJobs: state.activeScrapingJobs.map(j =>
+                        j.id === jobId ? processingUpdate : j
+                    ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                }));
+            }
+
+            // Reprocessar o job
+            await get().processFinishedScrapingJob({ ...job, status: 'APIFY_SUCCEEDED' as ScrapingJobStatus });
+
+            console.log('✅ Job atualizado com sucesso');
+        } catch (error: any) {
+            console.error(`Erro ao atualizar job ${jobId}:`, error);
+
+            // Atualizar status para FAILED_PROCESSING
+            const failedUpdate = await get().updateJobInSupabase(jobId, {
+                status: 'FAILED_PROCESSING' as ScrapingJobStatus,
+                error_message: `Erro ao atualizar: ${error.message}`
+            });
+
+            if (failedUpdate) {
+                set(state => ({
+                    activeScrapingJobs: state.activeScrapingJobs.map(j =>
+                        j.id === jobId ? failedUpdate : j
+                    ).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                }));
+            }
+
+            throw error;
+        }
+    },
+
+    setMainProfile: async (profileId: string) => {
+        set({ isLoading: true, error: null });
+        try {
+            const user = useAuthStore.getState().user;
+            if (!user) throw new Error('User not authenticated');
+
+            // Usar função RPC para definir perfil principal
+            // (Esta função contorna problemas com triggers e garante atomicidade)
+            const { data: rpcResult, error: rpcError } = await supabase
+                .rpc('update_instagram_main_profile', {
+                    profile_id: profileId,
+                    user_id_param: user.id
+                });
+
+            if (rpcError) {
+                console.error('Erro ao definir perfil principal:', rpcError);
+                throw rpcError;
+            }
+
+            if (!rpcResult) {
+                throw new Error('Falha ao definir perfil como principal');
+            }
+
+            // Atualiza o estado local reordenando os perfis
+            set(state => ({
+                profiles: state.profiles.map(p => ({
+                    ...p,
+                    isMain: p.id === profileId
+                })).sort((a, b) => {
+                    // Perfil principal primeiro
+                    if (a.isMain && !b.isMain) return -1;
+                    if (!a.isMain && b.isMain) return 1;
+                    // Depois por data de criação
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                })
+            }));
+
+        } catch (error) {
+            console.error('Erro ao definir perfil principal:', error);
+            set({ error: (error as Error).message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    getMainProfile: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data, error } = await supabase
+                .from('instagram_profiles')
+                .select('*')
+                .eq('is_main', true)
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                throw error;
+            }
+
+            if (data) {
+                return {
+                    id: data.id,
+                    instagram_id: data.instagram_id,
+                    username: data.username,
+                    fullName: data.full_name || '',
+                    biography: data.biography || '',
+                    followersCount: data.followers_count || 0,
+                    followsCount: data.follows_count || 0,
+                    postsCount: data.posts_count || 0,
+                    profilePicUrl: data.profile_pic_url || '',
+                    isBusinessAccount: data.is_business_account || false,
+                    businessCategoryName: data.business_category_name,
+                    createdAt: data.created_at,
+                    isMain: data.is_main || false
+                } as InstagramProfile;
+            }
+
+            return null;
+        } catch (error) {
+            set({ error: (error as Error).message });
+            return null;
+        } finally {
+            set({ isLoading: false });
         }
     }
 }));

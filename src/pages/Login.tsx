@@ -23,9 +23,9 @@ const Login = () => {
       });
 
       if (error) throw error;
-      
+
       setUser(data.user);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err) {
       setError(err.message || 'Falha ao fazer login');
     } finally {
@@ -38,14 +38,14 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div className="text-center">
           <div className="flex justify-center">
-            <img 
-              src="https://vqptszujydcaedjglhdo.supabase.co/storage/v1/object/public/storage//Logo.webp" 
-              alt="Nexia Logo" 
+            <img
+              src="https://vqptszujydcaedjglhdo.supabase.co/storage/v1/object/public/storage//Logo.webp"
+              alt="Nexia Logo"
               className="h-20"
             />
           </div>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <div>

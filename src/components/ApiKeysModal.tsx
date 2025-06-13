@@ -57,13 +57,22 @@ const ApiKeysModal = ({ isOpen, onClose }: ApiKeysModalProps) => {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [showHelp, setShowHelp] = useState(false);
 
+    // As chaves são carregadas automaticamente pelo useApiKeysLoader no App.tsx
+    // Apenas revalidamos quando o modal é aberto para garantir dados atualizados
     useEffect(() => {
         if (isOpen) {
-            fetchApiKeys();
-            fetchOpenAIKeys();
-            fetchApifyKeys();
+            // Só recarrega se não houver chaves carregadas ou se houver erro
+            if (apiKeys.length === 0 && !isYoutubeLoading && !youtubeError) {
+                fetchApiKeys();
+            }
+            if (openaiKeys.length === 0 && !isOpenAILoading && !openaiError) {
+                fetchOpenAIKeys();
+            }
+            if (apifyKeys.length === 0 && !isApifyLoading && !apifyError) {
+                fetchApifyKeys();
+            }
         }
-    }, [isOpen, fetchApiKeys, fetchOpenAIKeys, fetchApifyKeys]);
+    }, [isOpen, apiKeys.length, openaiKeys.length, apifyKeys.length, isYoutubeLoading, isOpenAILoading, isApifyLoading, youtubeError, openaiError, apifyError, fetchApiKeys, fetchOpenAIKeys, fetchApifyKeys]);
 
     // Reset form ao mudar de aba
     useEffect(() => {

@@ -1,0 +1,102 @@
+/* Formatação de markdown */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+    font-weight: 600;
+    margin: 16px 0 8px 0;
+    color: #1f2937;
+}
+
+.message-content h1 {
+    font-size: 20px;
+}
+
+.message-content h2 {
+    font-size: 18px;
+}
+
+.message-content h3 {
+    font-size: 16px;
+    color: #8b5cf6;
+}
+
+.message-content h4 {
+    font-size: 14px;
+}
+
+.message-content strong {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.message-content em {
+    font-style: italic;
+    color: #6b7280;
+}
+
+.message-content ul,
+.message-content ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.message-content li {
+    margin: 4px 0;
+    line-height: 1.5;
+}
+
+.message-content p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.message-content blockquote {
+    border-left: 3px solid #8b5cf6;
+    padding-left: 12px;
+    margin: 12px 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.markdown-separator {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+    margin: 16px 0;
+}
+
+.message.user .message-content h1,
+.message.user .message-content h2,
+.message.user .message-content h3,
+.message.user .message-content h4,
+.message.user .message-content strong {
+    color: #312e81;
+}
+
+/* Links clicáveis */
+.message-link {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+    transition: all 0.3s ease;
+    padding: 1px 2px;
+    border-radius: 4px;
+}
+
+.message-link:hover {
+    background: rgba(139, 92, 246, 0.1);
+    border-bottom-color: #8b5cf6;
+    text-decoration: none;
+}
+
+.message.user .message-link {
+    color: #6d28d9;
+    border-bottom-color: rgba(109, 40, 217, 0.4);
+}
+
+.message.user .message-link:hover {
+    background: rgba(109, 40, 217, 0.15);
+    border-bottom-color: #6d28d9;
+}

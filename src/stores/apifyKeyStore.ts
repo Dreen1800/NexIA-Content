@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
+import { useAuthStore } from './authStore';
 
 interface ApifyKey {
     id: string;
@@ -55,8 +56,8 @@ export const useApifyKeyStore = create<ApifyKeyState>((set, get) => ({
     addApifyKey: async (name, key) => {
         set({ isLoading: true, error: null });
         try {
-            // Get the current user's ID
-            const { data: { user } } = await supabase.auth.getUser();
+            // Get the current user from the auth store instead of making a separate call
+            const user = useAuthStore.getState().user;
 
             if (!user) {
                 throw new Error('User not authenticated');
@@ -98,33 +99,14 @@ export const useApifyKeyStore = create<ApifyKeyState>((set, get) => ({
 
             if (error) throw error;
 
-            // If we're updating the active status, update all other keys accordingly
-            if (updates.is_active === true) {
-                // Set all other keys to inactive
-                await supabase
-                    .from('apify_keys')
-                    .update({ is_active: false })
-                    .neq('id', id);
-
-                // Update local state to reflect changes
-                set(state => ({
-                    apifyKeys: state.apifyKeys.map(key => ({
-                        ...key,
-                        is_active: key.id === id ? true : false
-                    })),
-                    currentKey: state.apifyKeys.find(key => key.id === id) || state.currentKey
-                }));
-            } else {
-                // Just update the specific key
-                set(state => ({
-                    apifyKeys: state.apifyKeys.map(key =>
-                        key.id === id ? { ...key, ...updates } : key
-                    ),
-                    currentKey: state.currentKey?.id === id
-                        ? { ...state.currentKey, ...updates }
-                        : state.currentKey
-                }));
-            }
+            set(state => ({
+                apifyKeys: state.apifyKeys.map(key =>
+                    key.id === id ? { ...key, ...updates } : key
+                ),
+                currentKey: state.currentKey?.id === id
+                    ? { ...state.currentKey, ...updates }
+                    : state.currentKey
+            }));
         } catch (error) {
             set({ error: (error as Error).message });
         } finally {

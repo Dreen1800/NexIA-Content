@@ -16,19 +16,19 @@ const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     // Validate passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
+
     // Validate password length
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
-    
+
     setLoading(true);
 
     try {
@@ -38,9 +38,9 @@ const Register = () => {
       });
 
       if (error) throw error;
-      
+
       setUser(data.user);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err) {
       setError((err as Error).message || 'Failed to register');
     } finally {
@@ -53,9 +53,9 @@ const Register = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div className="text-center">
           <div className="flex justify-center">
-            <img 
-              src="https://archive.org/download/meu_20250506/MEU.png" 
-              alt="Nexia Logo" 
+            <img
+              src="https://archive.org/download/meu_20250506/MEU.png"
+              alt="Nexia Logo"
               className="h-12"
             />
           </div>
@@ -66,7 +66,7 @@ const Register = () => {
             Inscreva-se para começar a analisar canais
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>
           <div className="space-y-4">
             <div>
@@ -85,7 +85,7 @@ const Register = () => {
                 placeholder="O seu endereço de correio eletrónico"
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Senha
@@ -102,7 +102,7 @@ const Register = () => {
                 placeholder="Criar uma senha"
               />
             </div>
-            
+
             <div>
               <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
                 Confirmar Senha

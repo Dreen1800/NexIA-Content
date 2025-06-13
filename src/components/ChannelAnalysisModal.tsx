@@ -8,7 +8,6 @@ import VideoGallery from './VideoGallery';
 import EngagementChart from './EngagementChart';
 import ViewsDurationChart from './ViewsDurationChart';
 import ExportOptions from './ExportOptions';
-import CompetitorAnalysis from './CompetitorAnalysis';
 import ApiKeysModal from './ApiKeysModal';
 import { Search, AlertCircle, Settings, BarChart2, Grid, List, Youtube, Loader, X } from 'lucide-react';
 
@@ -39,7 +38,7 @@ const ChannelAnalysisModal = ({ isOpen, onClose, channelId }: ChannelAnalysisMod
 
     const [channelUrl, setChannelUrl] = useState('');
     const [displayMode, setDisplayMode] = useState<'list' | 'gallery'>('list');
-    const [activeTab, setActiveTab] = useState<'videos' | 'competitors'>('videos');
+    const [activeTab, setActiveTab] = useState<'videos'>('videos');
     const [showOptions, setShowOptions] = useState(false);
     const [isApiKeysModalOpen, setIsApiKeysModalOpen] = useState(false);
     const [options, setOptions] = useState<AnalysisOptions>({
@@ -309,15 +308,7 @@ const ChannelAnalysisModal = ({ isOpen, onClose, channelId }: ChannelAnalysisMod
                                                 >
                                                     Análise de Vídeos
                                                 </button>
-                                                <button
-                                                    onClick={() => setActiveTab('competitors')}
-                                                    className={`px-6 py-4 font-medium text-sm focus:outline-none transition-colors ${activeTab === 'competitors'
-                                                        ? 'bg-white text-purple-600 border-b-2 border-purple-600'
-                                                        : 'bg-gray-50 text-gray-600 hover:text-gray-900'
-                                                        }`}
-                                                >
-                                                    Análise de Concorrentes com IA
-                                                </button>
+
                                             </div>
                                         </div>
 
@@ -360,12 +351,7 @@ const ChannelAnalysisModal = ({ isOpen, onClose, channelId }: ChannelAnalysisMod
                                             </div>
                                         )}
 
-                                        {activeTab === 'competitors' && (
-                                            <CompetitorAnalysis
-                                                channelId={currentChannel.channel_id}
-                                                videoData={currentAnalysis.videos}
-                                            />
-                                        )}
+
                                     </div>
 
                                     <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100 p-6 mb-4">

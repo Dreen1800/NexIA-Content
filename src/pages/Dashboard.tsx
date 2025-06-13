@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useChannelStore } from '../stores/channelStore';
 import { useApiKeyStore } from '../stores/apiKeyStore';
+import { useSupabaseAdmin } from '../hooks/useSupabaseAdmin';
 import ChannelCard from '../components/ChannelCard';
 import ChannelAnalysisModal from '../components/ChannelAnalysisModal';
 import ApiKeysModal from '../components/ApiKeysModal';
@@ -10,6 +11,7 @@ import { Search, Plus, Key, Youtube, RefreshCw, AlertCircle, Loader2 } from 'luc
 const Dashboard = () => {
   const { channels, fetchChannels, isLoading } = useChannelStore();
   const { apiKeys, fetchApiKeys } = useApiKeyStore();
+  const { isSuperAdmin } = useSupabaseAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
@@ -118,13 +120,15 @@ const Dashboard = () => {
           />
         </div>
 
-        <button
-          onClick={() => openAnalysisModal()}
-          className="inline-flex items-center px-5 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 w-full md:w-auto justify-center shadow-md"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Analisar Novo Canal
-        </button>
+        {isSuperAdmin && (
+          <button
+            onClick={() => openAnalysisModal()}
+            className="inline-flex items-center px-5 py-3 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 w-full md:w-auto justify-center shadow-md"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Analisar Novo Canal
+          </button>
+        )}
       </div>
 
       {/* Grade de Canais */}
@@ -170,13 +174,15 @@ const Dashboard = () => {
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
             Comece analisando seu primeiro canal do YouTube para visualizar estatísticas e desempenho.
           </p>
-          <button
-            onClick={() => openAnalysisModal()}
-            className="inline-flex items-center px-5 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none transition-all duration-200 shadow-md"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Analisar Seu Primeiro Canal
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => openAnalysisModal()}
+              className="inline-flex items-center px-5 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none transition-all duration-200 shadow-md"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Analisar Seu Primeiro Canal
+            </button>
+          )}
 
           {apiKeys.length === 0 && (
             <div className="mt-6 mx-auto max-w-md">

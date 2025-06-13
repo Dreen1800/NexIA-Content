@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
+import { useAuthStore } from './authStore';
 
 interface OpenAIKey {
     id: string;
@@ -61,12 +62,19 @@ export const useOpenAIKeyStore = create<OpenAIKeyStore>((set, get) => ({
         set({ isLoading: true, error: null });
 
         try {
+            // Get the current user from the auth store instead of making a separate call
+            const user = useAuthStore.getState().user;
+
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
             const { data, error } = await supabase
                 .from('openai_keys')
                 .insert([{
                     name,
                     key,
-                    user_id: (await supabase.auth.getSession()).data.session?.user.id
+                    user_id: user.id
                 }])
                 .select();
 

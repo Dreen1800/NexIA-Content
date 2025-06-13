@@ -17,20 +17,7 @@ O aplicativo faz integração com a API do YouTube para obter dados de canais e 
 
 O serviço utiliza autenticação via chaves de API que são armazenadas no banco de dados e gerenciadas pelo `apiKeyStore`.
 
-## 2. Integração com OpenAI
-
-### Componente: `AiChannelAnalyzer.tsx`
-
-A aplicação utiliza a API da OpenAI para gerar análises avançadas com base nos dados coletados do YouTube:
-
-- **Análise de Tendências**: Identifica tendências entre os vídeos mais bem-sucedidos
-- **Padrões de Conteúdo**: Detecta formatos e padrões que funcionam bem
-- **Potencial Viral**: Sugere nichos com alta probabilidade de viralização
-- **Ideias de Conteúdo**: Propõe ideias de vídeos com potencial viral
-
-As chaves de API da OpenAI são gerenciadas pelo `openaiKeyStore`, que permite aos usuários armazenar e alternar entre múltiplas chaves.
-
-## 3. Integração com Supabase
+## 2. Integração com Supabase
 
 ### Cliente: `supabaseClient.ts`
 
@@ -46,12 +33,11 @@ A aplicação utiliza o Supabase como backend, oferecendo:
 - `channels`: Informações sobre canais analisados
 - `channel_analyses`: Resultados das análises de canais
 - `competitors`: Canais concorrentes para comparação
-- `ai_analyses`: Análises geradas pela IA
 - `instagram_profiles`: Perfis do Instagram analisados
 - `instagram_posts`: Posts coletados de perfis do Instagram
 - `apify_keys`: Chaves da API Apify para scraping do Instagram
 
-## 4. Integração com interface Dify
+## 3. Integração com interface Dify
 
 ### Componente: `ContentCreator.tsx`
 
@@ -61,7 +47,7 @@ O aplicativo incorpora o chatbot Dify através de um iframe que proporciona:
 - Acesso a um assistente especializado em criação de conteúdo para YouTube
 - Comunicação com a plataforma Dify hospedada em https://dify.nexialab.com.br
 
-## 5. Integração com Apify
+## 4. Integração com Apify
 
 ### Serviço: `instagramService.ts`
 
@@ -74,7 +60,7 @@ O aplicativo utiliza a API da Apify para fazer scraping de perfis do Instagram a
 
 As chaves da API Apify são gerenciadas pelo `apifyKeyStore`, permitindo aos usuários armazenar e alternar entre múltiplas chaves.
 
-## 6. Integrações de Estado com Zustand
+## 5. Integrações de Estado com Zustand
 
 A aplicação utiliza Zustand para gerenciamento de estado, com as seguintes stores:
 

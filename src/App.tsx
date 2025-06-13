@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home'; // Nova importação
-import AiChannelAnalyzer from './pages/AiChannelAnalyzer';
 import ContentCreator from './pages/ContentCreator'; // Nova importação
 import InstagramAnalytics from './pages/InstagramAnalytics'; // Nova importação
 import NotFound from './pages/NotFound';
@@ -15,12 +14,18 @@ import NotFound from './pages/NotFound';
 // Components
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
+import ApiKeysLoadingIndicator from './components/ApiKeysLoadingIndicator';
 import { supabase } from './lib/supabaseClient';
 
-function App() {
+// Contexts
+import { AppDataProvider, useAppData } from './contexts/AppDataProvider';
+
+// Componente interno que tem acesso ao contexto
+const AppContent = () => {
   const { user, setUser } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
+  const { isApiKeysLoaded } = useAppData();
 
   useEffect(() => {
     async function getUser() {
@@ -53,6 +58,9 @@ function App() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       {showNavigation && <Navigation />}
 
+      {/* Indicador de carregamento das chaves de API */}
+      {user && <ApiKeysLoadingIndicator isComplete={isApiKeysLoaded} />}
+
       <main className={`flex-grow ${showNavigation ? 'pt-20' : ''}`}>
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />
@@ -61,7 +69,6 @@ function App() {
           {/* Protected Routes */}
           <Route path="/home" element={!user ? <Navigate to="/login" /> : <Home />} /> {/* Nova rota */}
           <Route path="/dashboard" element={!user ? <Navigate to="/login" /> : <Dashboard />} />
-          <Route path="/ai-analyzer" element={!user ? <Navigate to="/login" /> : <AiChannelAnalyzer />} />
           <Route path="/content-creator" element={!user ? <Navigate to="/login" /> : <ContentCreator />} /> {/* Nova rota */}
           <Route path="/instagram-analytics" element={!user ? <Navigate to="/login" /> : <InstagramAnalytics />} /> {/* Nova rota */}
 
@@ -72,6 +79,14 @@ function App() {
 
       {showNavigation && <Footer />}
     </div>
+  );
+};
+
+function App() {
+  return (
+    <AppDataProvider>
+      <AppContent />
+    </AppDataProvider>
   );
 }
 

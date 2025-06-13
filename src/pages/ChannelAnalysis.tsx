@@ -8,7 +8,6 @@ import VideoGallery from '../components/VideoGallery';
 import EngagementChart from '../components/EngagementChart';
 import ViewsDurationChart from '../components/ViewsDurationChart';
 import ExportOptions from '../components/ExportOptions';
-import CompetitorAnalysis from '../components/CompetitorAnalysis';
 import { Search, ArrowLeft, AlertCircle, Settings, BarChart2, Grid, List, Youtube, Loader } from 'lucide-react';
 
 interface AnalysisOptions {
@@ -20,27 +19,27 @@ interface AnalysisOptions {
 const ChannelAnalysis = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { 
-    currentChannel, 
-    currentAnalysis, 
-    isLoading, 
-    error, 
-    analyzeChannel, 
+  const {
+    currentChannel,
+    currentAnalysis,
+    isLoading,
+    error,
+    analyzeChannel,
     fetchChannelAnalysis,
-    clearCurrentChannel 
+    clearCurrentChannel
   } = useChannelStore();
   const { apiKeys, currentKey } = useApiKeyStore();
-  
+
   const [channelUrl, setChannelUrl] = useState('');
   const [displayMode, setDisplayMode] = useState<'list' | 'gallery'>('list');
-  const [activeTab, setActiveTab] = useState<'videos' | 'competitors'>('videos');
+  const [activeTab, setActiveTab] = useState<'videos'>('videos');
   const [showOptions, setShowOptions] = useState(false);
   const [options, setOptions] = useState<AnalysisOptions>({
     maxVideos: 50,
     sortBy: 'views',
     includeShorts: false
   });
-  
+
   useEffect(() => {
     if (!id) {
       clearCurrentChannel();
@@ -48,11 +47,11 @@ const ChannelAnalysis = () => {
       fetchChannelAnalysis(id);
     }
   }, [id, fetchChannelAnalysis, clearCurrentChannel]);
-  
+
   const handleAnalyzeChannel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!channelUrl) return;
-    
+
     try {
       await analyzeChannel(channelUrl, options);
       setChannelUrl('');
@@ -60,7 +59,7 @@ const ChannelAnalysis = () => {
       console.error('Erro ao analisar canal:', error);
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -72,7 +71,7 @@ const ChannelAnalysis = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -92,7 +91,7 @@ const ChannelAnalysis = () => {
           </p>
         )}
       </div>
-      
+
       {/* Aviso de Chave API */}
       {apiKeys.length === 0 && (
         <div className="bg-amber-50 border-l-4 border-amber-400 p-5 mb-8 rounded-r-lg shadow-sm">
@@ -103,9 +102,9 @@ const ChannelAnalysis = () => {
             <div className="ml-3">
               <h3 className="text-sm font-medium text-amber-800">Chave API necessária</h3>
               <p className="text-sm text-amber-700 mt-1">
-                Você precisa adicionar uma chave da API do YouTube antes de analisar canais. 
-                <button 
-                  onClick={() => navigate('/api-keys')} 
+                Você precisa adicionar uma chave da API do YouTube antes de analisar canais.
+                <button
+                  onClick={() => navigate('/api-keys')}
                   className="ml-1 font-medium underline hover:text-amber-800"
                 >
                   Configurar chave API
@@ -115,7 +114,7 @@ const ChannelAnalysis = () => {
           </div>
         </div>
       )}
-      
+
       {/* Formulário de Busca de Canal */}
       {!currentChannel && (
         <div className="bg-white shadow-lg rounded-xl p-8 mb-8 border border-gray-100">
@@ -123,7 +122,7 @@ const ChannelAnalysis = () => {
             <Youtube className="w-7 h-7 text-purple-600 mr-3" />
             <h2 className="text-2xl font-semibold text-gray-800">Analisar Canal do YouTube</h2>
           </div>
-          
+
           <form onSubmit={handleAnalyzeChannel} className="space-y-6">
             <div>
               <label htmlFor="channelUrl" className="block text-sm font-medium text-gray-700 mb-1">
@@ -147,7 +146,7 @@ const ChannelAnalysis = () => {
                 Insira qualquer formato de URL de canal do YouTube (ex: /channel/ID, /c/NOME, /@NOME, /user/NOME)
               </p>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Chave da API
@@ -228,7 +227,7 @@ const ChannelAnalysis = () => {
                       <div className="opacity-0 bg-gray-800 text-white text-xs rounded p-2 absolute z-10 group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 w-60 pointer-events-none">
                         Os Shorts têm um formato diferente e podem afetar os resultados da análise.
                         <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255">
-                          <polygon className="fill-current" points="0,0 127.5,127.5 255,0"/>
+                          <polygon className="fill-current" points="0,0 127.5,127.5 255,0" />
                         </svg>
                       </div>
                     </div>
@@ -236,7 +235,7 @@ const ChannelAnalysis = () => {
                 </div>
               )}
             </div>
-            
+
             <button
               type="submit"
               disabled={!currentKey || isLoading}
@@ -245,7 +244,7 @@ const ChannelAnalysis = () => {
               <BarChart2 className="w-5 h-5 mr-2" />
               {isLoading ? 'Analisando...' : 'Analisar Canal'}
             </button>
-            
+
             {error && (
               <div className="p-4 text-sm text-red-700 bg-red-50 rounded-lg border border-red-200 mt-4">
                 <div className="flex">
@@ -257,15 +256,15 @@ const ChannelAnalysis = () => {
           </form>
         </div>
       )}
-      
+
       {/* Resultados da Análise do Canal */}
       {currentChannel && currentAnalysis && (
         <>
-          <ChannelHeader 
-            channel={currentChannel} 
-            analysisDate={currentAnalysis.analysis_date} 
+          <ChannelHeader
+            channel={currentChannel}
+            analysisDate={currentAnalysis.analysis_date}
           />
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
               <div className="p-4 border-b border-gray-100 bg-gray-50">
@@ -284,65 +283,53 @@ const ChannelAnalysis = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Tabs para Análise de Vídeos e Análise de Concorrentes */}
           <div className="bg-white shadow-lg rounded-xl overflow-hidden mb-8 border border-gray-100">
             <div className="border-b border-gray-100">
               <div className="flex">
                 <button
                   onClick={() => setActiveTab('videos')}
-                  className={`px-6 py-4 font-medium text-sm focus:outline-none transition-colors ${
-                    activeTab === 'videos'
-                      ? 'bg-white text-purple-600 border-b-2 border-purple-600'
-                      : 'bg-gray-50 text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`px-6 py-4 font-medium text-sm focus:outline-none transition-colors ${activeTab === 'videos'
+                    ? 'bg-white text-purple-600 border-b-2 border-purple-600'
+                    : 'bg-gray-50 text-gray-600 hover:text-gray-900'
+                    }`}
                 >
                   Análise de Vídeos
                 </button>
-                <button
-                  onClick={() => setActiveTab('competitors')}
-                  className={`px-6 py-4 font-medium text-sm focus:outline-none transition-colors ${
-                    activeTab === 'competitors'
-                      ? 'bg-white text-purple-600 border-b-2 border-purple-600'
-                      : 'bg-gray-50 text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Análise de Concorrentes com IA
-                </button>
+
               </div>
             </div>
-            
+
             {activeTab === 'videos' && (
               <div>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 border-b border-gray-100">
                   <h2 className="text-xl font-semibold text-gray-800">Análise de Vídeos</h2>
-                  
+
                   <div className="flex space-x-2 mt-4 md:mt-0">
                     <button
                       onClick={() => setDisplayMode('list')}
-                      className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-all ${
-                        displayMode === 'list' 
-                          ? 'bg-purple-100 text-purple-700 font-medium' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-all ${displayMode === 'list'
+                        ? 'bg-purple-100 text-purple-700 font-medium'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       <List className="w-4 h-4 mr-1.5" />
                       Lista
                     </button>
                     <button
                       onClick={() => setDisplayMode('gallery')}
-                      className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-all ${
-                        displayMode === 'gallery' 
-                          ? 'bg-purple-100 text-purple-700 font-medium' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-all ${displayMode === 'gallery'
+                        ? 'bg-purple-100 text-purple-700 font-medium'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       <Grid className="w-4 h-4 mr-1.5" />
                       Galeria
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="p-6">
                   {displayMode === 'list' ? (
                     <VideoList videos={currentAnalysis.videos} />
@@ -352,15 +339,10 @@ const ChannelAnalysis = () => {
                 </div>
               </div>
             )}
-            
-            {activeTab === 'competitors' && (
-              <CompetitorAnalysis 
-                channelId={currentChannel.channel_id} 
-                videoData={currentAnalysis.videos} 
-              />
-            )}
+
+
           </div>
-          
+
           <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Exportar Análise</h2>
             <ExportOptions videos={currentAnalysis.videos} channelTitle={currentChannel.title} />

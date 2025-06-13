@@ -452,6 +452,15 @@ export async function saveProfileDataOnly(profileData: any, profileUsername: str
         // Gerar ID temporário se não conseguir extrair o ID real do Instagram
         const instagramId = profileData.id || `temp_${Date.now()}_${profileUsername}`;
 
+        // Verificar se este é o primeiro perfil do usuário
+        const { data: existingProfiles, error: countError } = await supabase
+            .from('instagram_profiles')
+            .select('id')
+            .eq('user_id', userData.user.id);
+
+        if (countError) throw countError;
+        const isFirstProfile = existingProfiles.length === 0;
+
         const dbProfileData = {
             username: profileUsername,
             full_name: profileData.fullName || profileUsername,
@@ -464,7 +473,8 @@ export async function saveProfileDataOnly(profileData: any, profileUsername: str
             is_business_account: profileData.isBusinessAccount || false,
             business_category_name: profileData.businessCategoryName || null,
             instagram_id: instagramId,
-            user_id: userData.user.id
+            user_id: userData.user.id,
+            is_main: isFirstProfile // Define como principal se for o primeiro perfil
         };
 
         console.log('Dados para salvar no banco:', dbProfileData);

@@ -1,19 +1,23 @@
 import React from 'react';
+import ContentCreator from '../components/ContentCreator';
 
-function ContentCreator() {
+const pageStyles: React.CSSProperties = {
+    minHeight: '100vh',
+    width: '100%',
+    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 20%, #e2e8f0 40%, #c084fc 70%, #8b5cf6 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0',
+    position: 'relative'
+};
+
+function ContentCreatorPage() {
     return (
-        <div className="container mx-auto px-6 md:px-12 lg:px-20 py-4 h-full flex flex-col">
-            <h1 className="text-2xl font-bold mb-4">Criador de Conteúdo</h1>
-            <div className="w-full flex-grow">
-                <iframe
-                    src="https://dify.nexialab.com.br/chatbot/hM61lbTVtaOwWymU"
-                    className="w-full h-full min-h-[50vh] md:min-h-[60vh] lg:min-h-[70vh]"
-                    frameBorder="0"
-                    allow="microphone"
-                ></iframe>
-            </div>
+        <div style={pageStyles}>
+            <ContentCreator />
         </div>
     );
 }
 
-export default ContentCreator; 
+export default ContentCreatorPage;

@@ -5,9 +5,11 @@ import App from './App';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <App />
-    </Router>
-  </StrictMode>
+  // Temporariamente removido StrictMode para evitar execuções duplas dos useEffect
+  // que podem estar causando múltiplas instâncias do GoTrueClient
+  // <StrictMode>
+  <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <App />
+  </Router>
+  // </StrictMode>
 );
