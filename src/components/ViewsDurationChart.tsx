@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
   ScatterController,
+  LineController,
   Filler,
 } from 'chart.js';
 import { Scatter } from 'react-chartjs-2';
@@ -20,6 +21,7 @@ ChartJS.register(
   PointElement,
   LineElement,
   ScatterController,
+  LineController,
   Title,
   Tooltip,
   Legend,
@@ -59,7 +61,7 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
         likes: video.like_count,
         comments: video.comment_count,
       }));
-      
+
       // Calcular tendência linear (regressão)
       if (dataPoints.length > 1) {
         // Calcular média de x e y
@@ -67,28 +69,28 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
         const ySum = dataPoints.reduce((sum, point) => sum + point.y, 0);
         const xMean = xSum / dataPoints.length;
         const yMean = ySum / dataPoints.length;
-        
+
         // Calcular coeficientes para y = mx + b
         let numerator = 0;
         let denominator = 0;
-        
+
         for (const point of dataPoints) {
           numerator += (point.x - xMean) * (point.y - yMean);
           denominator += (point.x - xMean) * (point.x - xMean);
         }
-        
+
         const m = denominator !== 0 ? numerator / denominator : 0;
         const b = yMean - m * xMean;
-        
+
         // Criar pontos para a linha de tendência
         const minX = Math.min(...dataPoints.map(point => point.x));
         const maxX = Math.max(...dataPoints.map(point => point.x));
-        
+
         const trendlinePoints = [
           { x: minX, y: m * minX + b },
           { x: maxX, y: m * maxX + b }
         ];
-        
+
         setChartData({
           datasets: [
             {
@@ -164,7 +166,7 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           size: 12
         },
         titleFont: {
-          family: "'Inter', sans-serif", 
+          family: "'Inter', sans-serif",
           size: 14,
           weight: 'bold'
         },
@@ -174,12 +176,12 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           },
           label: (context: any) => {
             const { raw } = context;
-            
+
             if (!raw) return '';
-            
+
             const durationMinutes = Math.floor(raw.duration / 60);
             const durationSeconds = raw.duration % 60;
-            
+
             return [
               `Duração: ${durationMinutes}m ${durationSeconds}s`,
               `Visualizações: ${formatNumber(raw.views)}`,
@@ -249,23 +251,23 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
 
   const getCorrelationStrength = () => {
     if (videos.length <= 1) return 'Insuficiente';
-    
+
     // Calcular correlação
     const dataPoints = videos.map(video => ({
       x: video.duration_seconds / 60,
       y: video.view_count
     }));
-    
+
     const xValues = dataPoints.map(p => p.x);
     const yValues = dataPoints.map(p => p.y);
-    
+
     const xMean = xValues.reduce((a, b) => a + b, 0) / xValues.length;
     const yMean = yValues.reduce((a, b) => a + b, 0) / yValues.length;
-    
+
     let numerator = 0;
     let xDenominator = 0;
     let yDenominator = 0;
-    
+
     for (let i = 0; i < xValues.length; i++) {
       const xDiff = xValues[i] - xMean;
       const yDiff = yValues[i] - yMean;
@@ -273,9 +275,9 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
       xDenominator += xDiff * xDiff;
       yDenominator += yDiff * yDiff;
     }
-    
+
     const correlation = numerator / (Math.sqrt(xDenominator) * Math.sqrt(yDenominator));
-    
+
     // Classificar a força da correlação
     const absCorrelation = Math.abs(correlation);
     if (absCorrelation < 0.3) return 'Fraca';
@@ -298,7 +300,7 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           <TrendingUp className="w-5 h-5 text-purple-600 mr-2" />
           <h3 className="text-lg font-semibold text-gray-800">Correlação Visualizações x Duração</h3>
         </div>
-        <button 
+        <button
           className="text-gray-400 hover:text-gray-600 transition-colors"
           onClick={() => setShowInfo(!showInfo)}
           aria-label="Informações sobre o gráfico"
@@ -306,7 +308,7 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           <Info className="w-5 h-5" />
         </button>
       </div>
-      
+
       {showInfo && (
         <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-100 text-sm text-purple-800">
           <p>
@@ -315,32 +317,32 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           </p>
         </div>
       )}
-      
+
       <div className="flex flex-wrap gap-4 mb-4">
         <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-100">
           <Eye className="w-4 h-4 text-purple-600 mr-2" />
           <div>
             <div className="text-xs text-gray-600">Média de visualizações</div>
             <div className="font-semibold">
-              {videos.length > 0 
-                ? formatNumber(videos.reduce((sum, v) => sum + v.view_count, 0) / videos.length) 
+              {videos.length > 0
+                ? formatNumber(videos.reduce((sum, v) => sum + v.view_count, 0) / videos.length)
                 : '0'}
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-100">
           <Clock className="w-4 h-4 text-purple-600 mr-2" />
           <div>
             <div className="text-xs text-gray-600">Duração média</div>
             <div className="font-semibold">
-              {videos.length > 0 
-                ? Math.floor((videos.reduce((sum, v) => sum + v.duration_seconds, 0) / videos.length) / 60) + ' min' 
+              {videos.length > 0
+                ? Math.floor((videos.reduce((sum, v) => sum + v.duration_seconds, 0) / videos.length) / 60) + ' min'
                 : '0 min'}
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center p-3 bg-purple-50 rounded-lg border border-purple-100">
           <div>
             <div className="text-xs text-gray-600">Correlação</div>
@@ -350,13 +352,13 @@ const ViewsDurationChart = ({ videos }: ViewsDurationChartProps) => {
           </div>
         </div>
       </div>
-      
+
       <div className="h-72">
         <Scatter data={chartData} options={options} />
       </div>
-      
+
       <div className="mt-4 text-xs text-gray-500 text-center">
-        {videos.length > 0 
+        {videos.length > 0
           ? `Baseado em ${videos.length} vídeos do canal`
           : 'Nenhum dado disponível para análise'}
       </div>
